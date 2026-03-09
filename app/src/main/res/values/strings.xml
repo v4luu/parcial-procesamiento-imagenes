@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Parcial</string>
+    <string name="abrir_c_mara">Abrir Cámara</string>
+    <string name="abrir_galer_a">Abrir Galería</string>
+</resources>
