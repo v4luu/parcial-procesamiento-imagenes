@@ -19,6 +19,7 @@ import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
 
 public class CameraActivity extends AppCompatActivity
         implements CameraBridgeViewBase.CvCameraViewListener2 {
@@ -54,7 +55,7 @@ public class CameraActivity extends AppCompatActivity
         if (mOpenCvCameraView != null) {
             mOpenCvCameraView.setVisibility(SurfaceView.VISIBLE);
             mOpenCvCameraView.setCvCameraViewListener(this);
-            
+
             // CONFIGURACIÓN DE COMPATIBILIDAD
             mOpenCvCameraView.setCameraIndex(CameraBridgeViewBase.CAMERA_ID_ANY);
             mOpenCvCameraView.setZOrderMediaOverlay(true);
@@ -67,6 +68,7 @@ public class CameraActivity extends AppCompatActivity
     public void onResume() {
         super.onResume();
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+            mOpenCvCameraView.setCameraPermissionGranted();
             if (!OpenCVLoader.initDebug()) {
                 OpenCVLoader.initAsync(OpenCVLoader.OPENCV_VERSION, this, mLoaderCallback);
             } else {
@@ -81,6 +83,7 @@ public class CameraActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            mOpenCvCameraView.setCameraPermissionGranted();
             mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS);
         } else {
             Toast.makeText(this, "Permiso necesario", Toast.LENGTH_SHORT).show();
@@ -108,9 +111,26 @@ public class CameraActivity extends AppCompatActivity
 
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
+        Mat rgba = inputFrame.rgba();
+
         if (processingEnabled) {
-            return inputFrame.gray();
+            Mat gray = new Mat();
+            Mat edges = new Mat();
+            
+            // 1. Convertir a escala de grises
+            Imgproc.cvtColor(rgba, gray, Imgproc.COLOR_RGBA2GRAY);
+            
+            // 2. Detectar bordes con Canny
+            Imgproc.Canny(gray, edges, 80, 100);
+            
+            // 3. Convertir bordes de vuelta a RGBA para mostrar
+            Imgproc.cvtColor(edges, rgba, Imgproc.COLOR_GRAY2RGBA);
+            
+            // Liberar memoria temporal
+            gray.release();
+            edges.release();
         }
-        return inputFrame.rgba();
+        
+        return rgba;
     }
 }

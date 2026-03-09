@@ -20,7 +20,7 @@
         android:layout_marginBottom="50dp"
         android:padding="12dp"
         android:background="#AA000000"
-        android:text="Aplicar Filtro (Gris)"
+        android:text="Aplicar Edge Detection"
         android:textColor="#FFFFFF" />
 
 </FrameLayout>
